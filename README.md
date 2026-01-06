@@ -18,7 +18,22 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load 
+[Poppins](https://fonts.google.com/specimen/Poppins) for the entire UI.
+
+## Clerk auth setup
+
+1. Install the Clerk SDK: `npm install @clerk/nextjs`.
+2. Create `proxy.ts` at the project root to run `clerkMiddleware()` on your routes.
+3. Wrap `<ClerkProvider>` in `app/layout.tsx` and add the Clerk UI buttons (`SignInButton`, `SignUpButton`, `UserButton`, etc.).
+4. Store the keys shown in [the Clerk dashboard](https://dashboard.clerk.com/last-active?path=api-keys) in `.env.local`:
+
+```bash
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=YOUR_PUBLISHABLE_KEY
+CLERK_SECRET_KEY=YOUR_SECRET_KEY
+```
+
+Clerk keys must stay out of tracked files; `.env*` is already ignored by default.
 
 ## Learn More
 
