@@ -13,10 +13,13 @@ export default function Home() {
       {/* Sticky Navigation */}
       <nav className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
-          <div className="flex items-center gap-2 text-xl font-bold">
+          <Link
+            href="/"
+            className="flex items-center gap-2 text-xl font-bold cursor-pointer transition-colors hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+          >
             <Sparkles className="h-5 w-5" />
             FlashyCardy
-          </div>
+          </Link>
 
           <div className="hidden items-center gap-2 md:flex">
             <SignedIn>
