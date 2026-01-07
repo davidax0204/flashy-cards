@@ -1,9 +1,7 @@
 "use server";
 
 import { auth } from "@clerk/nextjs/server";
-import { db } from "@/lib/db";
-import { decksTable, cardsTable } from "@/lib/db/schema";
-import { eq, and } from "drizzle-orm";
+import { getDeckByIdAndUserId, deleteDeckById } from "@/lib/db/queries/decks";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
@@ -19,25 +17,13 @@ export async function deleteDeck(input: DeleteDeckInput) {
 
   const validated = deleteDeckSchema.parse(input);
 
-  // Verify ownership before deleting
-  const [deck] = await db
-    .select()
-    .from(decksTable)
-    .where(
-      and(
-        eq(decksTable.id, validated.deckId),
-        eq(decksTable.userId, userId)
-      )
-    );
+  const deck = await getDeckByIdAndUserId(validated.deckId, userId);
 
   if (!deck) {
     throw new Error("Deck not found or access denied");
   }
 
-  // Delete the deck (cards will cascade delete)
-  await db
-    .delete(decksTable)
-    .where(eq(decksTable.id, validated.deckId));
+  await deleteDeckById(validated.deckId);
 
   revalidatePath("/dashboard");
 }

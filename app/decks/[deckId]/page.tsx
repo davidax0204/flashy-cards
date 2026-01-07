@@ -1,9 +1,8 @@
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 
-import { db } from "@/lib/db";
-import { decksTable, cardsTable } from "@/lib/db/schema";
-import { and, eq, sql } from "drizzle-orm";
+import { getDeckByIdAndUserId } from "@/lib/db/queries/decks";
+import { getCardsByDeckId } from "@/lib/db/queries/cards";
 import { DeckCardsClient } from "./deck-cards-client";
 import { SerializedCard } from "./page-types";
 import Link from "next/link";
@@ -26,23 +25,16 @@ export default async function DeckDetailsPage({ params }: DeckDetailsPageProps) 
   const { userId } = await auth();
 
   if (!userId) {
-    redirect("/sign-in");
+    redirect("/");
   }
 
-  const [deck] = await db
-    .select()
-    .from(decksTable)
-    .where(and(eq(decksTable.id, parsedDeckId), eq(decksTable.userId, userId)));
+  const deck = await getDeckByIdAndUserId(parsedDeckId, userId);
 
   if (!deck) {
     return <DeckNotFound />;
   }
 
-  const cards = await db
-    .select()
-    .from(cardsTable)
-    .where(eq(cardsTable.deckId, deck.id))
-    .orderBy(sql`${cardsTable.updatedAt} desc`);
+  const cards = await getCardsByDeckId(deck.id);
 
   const serializedCards: SerializedCard[] = cards.map((card) => ({
     id: card.id,

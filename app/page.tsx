@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { SignedIn } from "@clerk/nextjs";
+import { SignedIn, SignedOut, SignInButton, SignUpButton } from "@clerk/nextjs";
 import Link from "next/link";
 import { Layers, Repeat, Search, Sparkles } from "lucide-react";
 
@@ -70,12 +70,26 @@ export default function Home() {
           </p>
 
           <div className="mt-10 flex flex-col gap-4 sm:flex-row">
-            <Button size="lg" className="text-base">
-              Create a deck
-            </Button>
-            <Button size="lg" variant="outline" className="text-base">
-              Try demo
-            </Button>
+            <SignedOut>
+              <SignUpButton mode="modal">
+                <Button size="lg" className="text-base">
+                  Sign up
+                </Button>
+              </SignUpButton>
+              <SignInButton mode="modal">
+                <Button size="lg" variant="outline" className="text-base">
+                  Sign in
+                </Button>
+              </SignInButton>
+            </SignedOut>
+            <SignedIn>
+              <Button size="lg" className="text-base">
+                Create a deck
+              </Button>
+              <Button size="lg" variant="outline" className="text-base">
+                Try demo
+              </Button>
+            </SignedIn>
           </div>
 
           <div className="mt-12 flex flex-wrap items-center justify-center gap-3">
