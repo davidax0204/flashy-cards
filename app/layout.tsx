@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
+import Link from "next/link";
 import {
   ClerkProvider,
   SignInButton,
@@ -35,9 +36,12 @@ export default function RootLayout({
         <body className={`${poppins.variable} antialiased`}>
           <div className="min-h-screen bg-background text-foreground">
             <header className="flex items-center justify-between border-b border-border px-6 py-4">
-              <p className="text-lg font-semibold tracking-tight">
+              <Link
+                href="/"
+                className="cursor-pointer text-lg font-semibold tracking-tight transition-colors hover:text-primary"
+              >
                 Flashy Cards
-              </p>
+              </Link>
               <div className="flex gap-2">
                 <SignedOut>
                   <SignInButton mode="modal">

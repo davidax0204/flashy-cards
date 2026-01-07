@@ -1,9 +1,8 @@
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
-
 import { getDeckByIdAndUserId } from "@/lib/db/queries/decks";
 import { getCardsByDeckId } from "@/lib/db/queries/cards";
-import { DeckCardsClient } from "./deck-cards-client";
+import { DeckPageClient } from "./deck-page-client";
 import { SerializedCard } from "./page-types";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -12,6 +11,19 @@ interface DeckDetailsPageProps {
   params: Promise<{
     deckId: string;
   }>;
+}
+
+async function getSerializedCards(deckId: number): Promise<SerializedCard[]> {
+  const cards = await getCardsByDeckId(deckId);
+
+  return cards.map((card) => ({
+    id: card.id,
+    deckId: card.deckId,
+    front: card.front,
+    back: card.back,
+    createdAt: card.createdAt.toISOString(),
+    updatedAt: card.updatedAt.toISOString(),
+  }));
 }
 
 export default async function DeckDetailsPage({ params }: DeckDetailsPageProps) {
@@ -28,30 +40,23 @@ export default async function DeckDetailsPage({ params }: DeckDetailsPageProps) 
     redirect("/");
   }
 
+  // Load deck info immediately (for header)
   const deck = await getDeckByIdAndUserId(parsedDeckId, userId);
 
   if (!deck) {
     return <DeckNotFound />;
   }
 
-  const cards = await getCardsByDeckId(deck.id);
-
-  const serializedCards: SerializedCard[] = cards.map((card) => ({
-    id: card.id,
-    deckId: card.deckId,
-    front: card.front,
-    back: card.back,
-    createdAt: card.createdAt.toISOString(),
-    updatedAt: card.updatedAt.toISOString(),
-  }));
+  // Create a promise for cards (loads async in Suspense)
+  const cardsPromise = getSerializedCards(parsedDeckId);
 
   return (
     <div className="min-h-screen bg-background">
-      <DeckCardsClient
+      <DeckPageClient
         deckId={deck.id}
         deckName={deck.name}
         deckDescription={deck.description ?? "Study and manage your cards"}
-        cards={serializedCards}
+        cardsPromise={cardsPromise}
       />
     </div>
   );
