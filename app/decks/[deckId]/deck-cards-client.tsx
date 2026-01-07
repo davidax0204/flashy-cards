@@ -203,21 +203,8 @@ export function DeckCardsClient({
                 key={card.id}
                 className="break-inside-avoid mb-6 rounded-3xl border border-border bg-card/80 p-5 shadow-[0_15px_45px_rgba(15,23,42,0.08)] transition hover:-translate-y-1 hover:border-primary/60 hover:shadow-xl"
               >
-                <div className="relative">
-                  <div className="absolute right-3 top-3">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="text-muted-foreground hover:text-destructive"
-                      onClick={() => {
-                        setSelectedCard(card);
-                        setAlertOpen(true);
-                      }}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  <div className="space-y-4">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex-1 space-y-4">
                     <div>
                       <p className="text-xs uppercase tracking-[0.4em] text-muted-foreground">
                         Front
@@ -236,11 +223,21 @@ export function DeckCardsClient({
                       </p>
                     </div>
                   </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="shrink-0 text-muted-foreground hover:text-destructive"
+                    onClick={() => {
+                      setSelectedCard(card);
+                      setAlertOpen(true);
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </div>
 
-                <div className="mt-6 flex items-center justify-between text-xs text-muted-foreground">
+                <div className="mt-6 text-xs text-muted-foreground">
                   <span>Updated {formatRelative(card.updatedAt)}</span>
-                  <span>{Math.max(card.front.length, card.back.length)} chars</span>
                 </div>
               </article>
             ))}
