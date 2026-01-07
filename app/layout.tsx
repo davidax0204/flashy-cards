@@ -1,4 +1,3 @@
-import Link from "next/link";
 import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import {
@@ -36,12 +35,9 @@ export default function RootLayout({
         <body className={`${poppins.variable} antialiased`}>
           <div className="min-h-screen bg-background text-foreground">
             <header className="flex items-center justify-between border-b border-border px-6 py-4">
-              <Link
-                href="/"
-                className="text-lg font-semibold tracking-tight focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-              >
+              <p className="text-lg font-semibold tracking-tight">
                 Flashy Cards
-              </Link>
+              </p>
               <div className="flex gap-2">
                 <SignedOut>
                   <SignInButton mode="modal">
