@@ -14,7 +14,7 @@ async function DeckGridData({ userId }: { userId: string }) {
   }
 
   return (
-    <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 auto-rows-fr">
       {decks.map((deck) => (
         <DeckCard key={deck.id} deck={deck} />
       ))}
@@ -24,23 +24,25 @@ async function DeckGridData({ userId }: { userId: string }) {
 
 function DeckGridLoading() {
   return (
-    <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 auto-rows-fr">
       {[1, 2, 3, 4, 5, 6].map((i) => (
-        <div key={i} className="group relative">
+        <div key={i} className="group relative h-full">
           {/* Stack shadows */}
           <div className="absolute left-2 top-2 h-full w-full rounded-lg border border-border bg-card opacity-40" />
           <div className="absolute left-1 top-1 h-full w-full rounded-lg border border-border bg-card opacity-70" />
 
           {/* Main card skeleton */}
-          <div className="relative rounded-lg border border-border bg-card p-6">
+          <div className="relative flex h-full flex-col rounded-lg border border-border bg-card p-6">
             <Skeleton className="mb-1 h-7 w-3/4" />
             <div className="mb-4 flex items-center gap-3">
               <Skeleton className="h-4 w-20" />
               <Skeleton className="h-4 w-2" />
               <Skeleton className="h-4 w-24" />
             </div>
-            <Skeleton className="mb-2 h-4 w-full" />
-            <Skeleton className="mb-4 h-4 w-5/6" />
+            <div className="mb-4 flex-grow">
+              <Skeleton className="mb-2 h-4 w-full" />
+              <Skeleton className="h-4 w-5/6" />
+            </div>
             <Skeleton className="h-9 w-full" />
           </div>
         </div>

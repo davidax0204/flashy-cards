@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Pencil } from "lucide-react";
 import type { SerializedCard } from "./page-types";
 
 interface CardsDisplayProps {
@@ -13,6 +13,7 @@ interface CardsDisplayProps {
   viewMode: "gallery" | "compact";
   onAddCardClick: () => void;
   onDeleteCardClick: (card: SerializedCard) => void;
+  onEditCardClick: (card: SerializedCard) => void;
 }
 
 export function CardsDisplay({
@@ -21,6 +22,7 @@ export function CardsDisplay({
   viewMode,
   onAddCardClick,
   onDeleteCardClick,
+  onEditCardClick,
 }: CardsDisplayProps) {
   const filteredCards = useMemo(() => {
     if (!search.trim()) {
@@ -103,14 +105,24 @@ export function CardsDisplay({
                   </p>
                 </div>
               </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="shrink-0 text-muted-foreground hover:text-destructive"
-                onClick={() => onDeleteCardClick(card)}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
+              <div className="flex shrink-0 gap-1">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-muted-foreground hover:text-foreground"
+                  onClick={() => onEditCardClick(card)}
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-muted-foreground hover:text-destructive"
+                  onClick={() => onDeleteCardClick(card)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
 
             <div className="mt-6 text-xs text-muted-foreground">

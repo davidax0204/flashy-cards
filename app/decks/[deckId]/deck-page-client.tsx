@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, Suspense, useState } from "react";
+import { FormEvent, Suspense, useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -23,7 +23,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Loader2 } from "lucide-react";
-import { addDeckCard, deleteDeckCard } from "./actions";
+import { addDeckCard, deleteDeckCard, updateDeckCard } from "./actions";
 import type { SerializedCard } from "./page-types";
 import { DeckHeader } from "./deck-header";
 import { CardsDisplay } from "./cards-display";
@@ -52,6 +52,13 @@ export function DeckPageClient({
   const [alertOpen, setAlertOpen] = useState(false);
   const [selectedCard, setSelectedCard] = useState<SerializedCard | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingCard, setEditingCard] = useState<SerializedCard | null>(null);
+  const [editFrontText, setEditFrontText] = useState("");
+  const [editBackText, setEditBackText] = useState("");
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [editErrorMessage, setEditErrorMessage] = useState<string | null>(null);
+  const [cardsCount, setCardsCount] = useState<number | undefined>(undefined);
 
   const handleAddCard = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -102,10 +109,45 @@ export function DeckPageClient({
     }
   };
 
+  const handleEditCard = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setEditErrorMessage(null);
+
+    if (!editFrontText.trim() || !editBackText.trim()) {
+      setEditErrorMessage("Both front and back text are required.");
+      return;
+    }
+
+    if (!editingCard) {
+      return;
+    }
+
+    setIsUpdating(true);
+
+    try {
+      await updateDeckCard({
+        deckId,
+        cardId: editingCard.id,
+        front: editFrontText,
+        back: editBackText,
+      });
+      setEditFrontText("");
+      setEditBackText("");
+      setIsEditDialogOpen(false);
+      setEditingCard(null);
+    } catch (error) {
+      console.error(error);
+      setEditErrorMessage("Unable to update card right now. Please try again.");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
   return (
     <>
       {/* Header - Always visible */}
       <DeckHeader
+        deckId={deckId}
         deckName={deckName}
         deckDescription={deckDescription}
         onAddCardClick={() => setIsDialogOpen(true)}
@@ -113,6 +155,7 @@ export function DeckPageClient({
         onSearchChange={setSearch}
         viewMode={viewMode}
         onViewModeChange={setViewMode}
+        cardsCount={cardsCount}
       />
 
       {/* Cards - Shows loading skeleton */}
@@ -126,6 +169,13 @@ export function DeckPageClient({
             setSelectedCard(card);
             setAlertOpen(true);
           }}
+          onEditCardClick={(card) => {
+            setEditingCard(card);
+            setEditFrontText(card.front);
+            setEditBackText(card.back);
+            setIsEditDialogOpen(true);
+          }}
+          onCardsLoaded={setCardsCount}
         />
       </Suspense>
 
@@ -179,6 +229,65 @@ export function DeckPageClient({
         </DialogContent>
       </Dialog>
 
+      {/* Edit Card Dialog */}
+      <Dialog 
+        open={isEditDialogOpen} 
+        onOpenChange={(open) => {
+          setIsEditDialogOpen(open);
+          if (!open) {
+            setEditingCard(null);
+            setEditErrorMessage(null);
+          }
+        }}
+      >
+        <DialogContent showCloseButton>
+          <DialogHeader>
+            <DialogTitle>Edit card</DialogTitle>
+            <DialogDescription>
+              Make changes to your flashcard.
+            </DialogDescription>
+          </DialogHeader>
+          <form className="space-y-4" onSubmit={handleEditCard}>
+            <div>
+              <label className="mb-2 block text-sm font-semibold text-muted-foreground">
+                Front
+              </label>
+              <Textarea
+                value={editFrontText}
+                onChange={(event) => setEditFrontText(event.target.value)}
+                placeholder="Prompt or question"
+                rows={3}
+              />
+            </div>
+            <div>
+              <label className="mb-2 block text-sm font-semibold text-muted-foreground">
+                Back
+              </label>
+              <Textarea
+                value={editBackText}
+                onChange={(event) => setEditBackText(event.target.value)}
+                placeholder="Answer or explanation"
+                rows={3}
+              />
+            </div>
+            {editErrorMessage && (
+              <p className="text-xs text-destructive">{editErrorMessage}</p>
+            )}
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button variant="outline" disabled={isUpdating}>
+                  Cancel
+                </Button>
+              </DialogClose>
+              <Button type="submit" disabled={isUpdating}>
+                {isUpdating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {isUpdating ? "Saving..." : "Save changes"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
       {/* Delete Card Dialog */}
       <AlertDialog
         open={alertOpen}
@@ -220,14 +329,23 @@ function CardsLoader({
   viewMode,
   onAddCardClick,
   onDeleteCardClick,
+  onEditCardClick,
+  onCardsLoaded,
 }: {
   cardsPromise: Promise<SerializedCard[]>;
   search: string;
   viewMode: "gallery" | "compact";
   onAddCardClick: () => void;
   onDeleteCardClick: (card: SerializedCard) => void;
+  onEditCardClick: (card: SerializedCard) => void;
+  onCardsLoaded: (count: number) => void;
 }) {
   const cards = use(cardsPromise);
+
+  // Notify parent of cards count after render
+  useEffect(() => {
+    onCardsLoaded(cards.length);
+  }, [cards.length, onCardsLoaded]);
 
   return (
     <CardsDisplay
@@ -236,6 +354,7 @@ function CardsLoader({
       viewMode={viewMode}
       onAddCardClick={onAddCardClick}
       onDeleteCardClick={onDeleteCardClick}
+      onEditCardClick={onEditCardClick}
     />
   );
 }

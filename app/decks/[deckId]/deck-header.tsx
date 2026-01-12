@@ -2,9 +2,11 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Search, Columns, List } from "lucide-react";
+import { Plus, Search, Columns, List, BookOpen } from "lucide-react";
+import Link from "next/link";
 
 interface DeckHeaderProps {
+  deckId: number;
   deckName: string;
   deckDescription: string;
   onAddCardClick: () => void;
@@ -16,6 +18,7 @@ interface DeckHeaderProps {
 }
 
 export function DeckHeader({
+  deckId,
   deckName,
   deckDescription,
   onAddCardClick,
@@ -25,6 +28,8 @@ export function DeckHeader({
   onViewModeChange,
   cardsCount,
 }: DeckHeaderProps) {
+  const hasCards = cardsCount !== undefined && cardsCount > 0;
+
   return (
     <section className="mx-auto max-w-6xl px-6 py-10">
       <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
@@ -37,10 +42,18 @@ export function DeckHeader({
             {deckDescription}
           </p>
         </div>
-        <Button size="lg" onClick={onAddCardClick}>
-          <Plus className="mr-2 h-5 w-5" />
-          Add Card
-        </Button>
+        <div className="flex gap-3">
+          <Link href={`/decks/${deckId}/study`}>
+            <Button size="lg" variant="outline" disabled={!hasCards}>
+              <BookOpen className="mr-2 h-5 w-5" />
+              Study
+            </Button>
+          </Link>
+          <Button size="lg" onClick={onAddCardClick}>
+            <Plus className="mr-2 h-5 w-5" />
+            Add Card
+          </Button>
+        </div>
       </div>
 
       <div className="mt-8 flex flex-col gap-4 rounded-2xl border border-border bg-card/70 p-4 shadow-sm shadow-muted-foreground/10 sm:flex-row sm:items-center">

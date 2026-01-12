@@ -33,3 +33,17 @@ export async function deleteDeckById(deckId: number) {
   await db.delete(decksTable).where(eq(decksTable.id, deckId));
 }
 
+export async function updateDeckById(
+  deckId: number,
+  data: { name: string; description?: string | null }
+) {
+  await db
+    .update(decksTable)
+    .set({
+      name: data.name,
+      description: data.description,
+      updatedAt: new Date(),
+    })
+    .where(eq(decksTable.id, deckId));
+}
+

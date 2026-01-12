@@ -30,3 +30,18 @@ export async function deleteCardById(cardId: number, deckId: number) {
     .where(and(eq(cardsTable.id, cardId), eq(cardsTable.deckId, deckId)));
 }
 
+export async function updateCardById(
+  cardId: number,
+  deckId: number,
+  data: { front: string; back: string }
+) {
+  await db
+    .update(cardsTable)
+    .set({
+      front: data.front,
+      back: data.back,
+      updatedAt: new Date(),
+    })
+    .where(and(eq(cardsTable.id, cardId), eq(cardsTable.deckId, deckId)));
+}
+

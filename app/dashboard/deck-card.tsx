@@ -1,8 +1,20 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -13,9 +25,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { BookOpen, Trash2, Loader2 } from "lucide-react";
-import { deleteDeck } from "./actions";
-import Link from "next/link";
+import { BookOpen, Trash2, Loader2, Pencil } from "lucide-react";
+import { deleteDeck, updateDeck } from "./actions";
 import { toast } from "sonner";
 
 type Deck = {
@@ -27,8 +38,17 @@ type Deck = {
 };
 
 export function DeckCard({ deck }: { deck: Deck }) {
+  const router = useRouter();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [editName, setEditName] = useState(deck.name);
+  const [editDescription, setEditDescription] = useState(deck.description || "");
+
+  const handleCardClick = () => {
+    router.push(`/decks/${deck.id}`);
+  };
 
   const handleDelete = async () => {
     setIsDeleting(true);
@@ -42,6 +62,37 @@ export function DeckCard({ deck }: { deck: Deck }) {
     } finally {
       setIsDeleting(false);
     }
+  };
+
+  const handleUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsUpdating(true);
+    try {
+      await updateDeck({
+        deckId: deck.id,
+        name: editName,
+        description: editDescription || undefined,
+      });
+      toast.success("Deck updated successfully");
+      setEditDialogOpen(false);
+    } catch (error) {
+      toast.error("Failed to update deck");
+      console.error(error);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleEditOpen = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditName(deck.name);
+    setEditDescription(deck.description || "");
+    setEditDialogOpen(true);
+  };
+
+  const handleDeleteOpen = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setDeleteDialogOpen(true);
   };
 
   const formatDate = (date: Date) => {
@@ -61,19 +112,22 @@ export function DeckCard({ deck }: { deck: Deck }) {
 
   return (
     <>
-      <div className="group relative">
+      <div className="group relative h-full">
         {/* Stack shadow layers */}
         <div className="absolute left-2 top-2 h-full w-full rounded-lg border border-border bg-card opacity-40 transition-all group-hover:left-3 group-hover:top-3" />
         <div className="absolute left-1 top-1 h-full w-full rounded-lg border border-border bg-card opacity-70 transition-all group-hover:left-2 group-hover:top-2" />
 
         {/* Main card */}
-        <Card className="relative transform border-border bg-card p-6 transition-all hover:shadow-lg hover:-translate-y-1">
+        <Card 
+          className="relative flex h-full flex-col transform border-border bg-card p-6 transition-all hover:shadow-lg hover:-translate-y-1 cursor-pointer"
+          onClick={handleCardClick}
+        >
           {/* Delete button */}
           <Button
             variant="ghost"
             size="sm"
             className="absolute right-2 top-2 h-8 w-8 p-0 text-muted-foreground opacity-0 transition-opacity hover:text-destructive group-hover:opacity-100"
-            onClick={() => setDeleteDialogOpen(true)}
+            onClick={handleDeleteOpen}
           >
             <Trash2 className="h-4 w-4" />
           </Button>
@@ -93,30 +147,82 @@ export function DeckCard({ deck }: { deck: Deck }) {
             <span>{formatDate(deck.updatedAt)}</span>
           </div>
 
-          {/* Description */}
-          {deck.description && (
-            <p className="mb-4 line-clamp-2 text-sm text-muted-foreground">
-              {deck.description}
-            </p>
-          )}
+          {/* Description - always reserve space */}
+          <div className="mb-4 min-h-[2.5rem] flex-grow">
+            {deck.description && (
+              <p className="line-clamp-2 text-sm text-muted-foreground">
+                {deck.description}
+              </p>
+            )}
+          </div>
 
           {/* Actions */}
-          <div className="flex">
+          <div className="flex mt-auto" onClick={(e) => e.stopPropagation()}>
             <Button
-              asChild
+              onClick={handleEditOpen}
               className="flex-1 justify-center text-base"
               size="sm"
             >
-              <Link
-                href={`/decks/${deck.id}`}
-                className="block w-full text-center font-semibold"
-              >
-                Open deck
-              </Link>
+              <Pencil className="mr-2 h-4 w-4" />
+              Edit
             </Button>
           </div>
         </Card>
       </div>
+
+      {/* Edit deck dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit deck</DialogTitle>
+            <DialogDescription>
+              Make changes to your deck. Click save when you&apos;re done.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleUpdate}>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Name</Label>
+                <Input
+                  id="name"
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  placeholder="Deck name"
+                  disabled={isUpdating}
+                  maxLength={100}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  id="description"
+                  value={editDescription}
+                  onChange={(e) => setEditDescription(e.target.value)}
+                  placeholder="Optional description"
+                  disabled={isUpdating}
+                  maxLength={500}
+                  rows={3}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setEditDialogOpen(false)}
+                disabled={isUpdating}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isUpdating || !editName.trim()}>
+                {isUpdating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {isUpdating ? "Saving..." : "Save changes"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       {/* Delete confirmation dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
